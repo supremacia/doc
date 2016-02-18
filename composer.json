@@ -21,6 +21,6 @@
     "require-dev": {
     },
     "autoload": {
-        "psr-0": {"limp": "src/"}
+        "psr-0": {"Limp\\": "src/"}
     }
 }

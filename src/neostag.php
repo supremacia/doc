@@ -5,14 +5,14 @@
  * @license     MIT & GLP2
  * @author      Bill Rocha - prbr@ymail.com
  * @version     0.0.1
- * @package     Frame\\Doc
+ * @package     Limp
  * @access      public
  * @since       0.0.4
  *
  * ©NeosTag é marca registrada da NeosOrg e todos os direitos são reservados.
  */
 
-namespace Frame\Doc;
+namespace Limp\Doc;
 
 class Neostag{
 
