@@ -5,7 +5,7 @@
  * @license     MIT & GLP2
  * @author      Bill Rocha - prbr@ymail.com
  * @version     0.0.1
- * @package     LIMP
+ * @package     Limp
  * @access      public
  * @since       0.0.4
  *
@@ -147,10 +147,10 @@ class Html extends Neostag
         else {
             $content = '';
             foreach ($this->styles as $file) {
-                $content .= exec('java -jar '.__DIR__.'/yc.jar "'.$this->pathStyle.$file.'.css"');
+                $content .= exec('java -jar '.__DIR__.'/min/yc.jar "'.$this->pathStyle.$file.'.css"');
             }
             file_put_contents($this->pathStyle.$this->name.'_all.css', $content);
-            $content = exec('java -jar '.__DIR__.'/yc.jar "'.$this->pathStyle.$this->name.'_all.css"');
+            $content = exec('java -jar '.__DIR__.'/min/yc.jar "'.$this->pathStyle.$this->name.'_all.css"');
             file_put_contents($this->pathStyle.$this->name.'_all.css', $content);
         }
         $this->val('style', '<style id="stylesheet_base">'.$content.'</style>');
@@ -162,10 +162,10 @@ class Html extends Neostag
         else {
             $content = ';';
             foreach ($this->scripts as $file) {
-                $content .= exec('java -jar '.__DIR__.'/yc.jar "'.$this->pathScript.$file.'.js"');
+                $content .= exec('java -jar '.__DIR__.'/min/yc.jar "'.$this->pathScript.$file.'.js"');
             }
             file_put_contents($this->pathScript.$this->name.'_all.js', $content);
-            $content = exec('java -jar '.__DIR__.'/yc.jar "'.$this->pathScript.$this->name.'_all.js"');
+            $content = exec('java -jar '.__DIR__.'/min/yc.jar "'.$this->pathScript.$this->name.'_all.js"');
             file_put_contents($this->pathScript.$this->name.'_all.js', $content);
         }
         $s = '<script id="javascript_base">var URL="'.¢URL.'"';
@@ -464,7 +464,7 @@ class Html extends Neostag
         $v = $this->getVar(trim($ret['var']));
         if(!$v) return '';
         //$ret['-content-'] .= $v;
-        $ret['-content-'] .= '<?php echo Lib\Doc::get("'.trim($ret['var']).'")?>';
+        $ret['-content-'] .= '<?php echo Limp\Doc\HTML::get("'.trim($ret['var']).'")?>';
 
         //List type
         if(is_array($v)) return $this->_list($ret);
