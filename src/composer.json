@@ -1,0 +1,26 @@
+{
+    "name": "limp/doc",
+    "description": "HTML document factory",
+    "keywords": ["view", "template"],
+    "license": "MIT",
+    "type": "library",
+    "homepage": "http://qzumba.com/limp",
+    "authors": [{
+        "name": "Bill Rocha",
+        "email": "prbr@ymail.com"
+    }],
+    "config": {
+        "preferred-install": "dist"
+    },
+    "archive": {
+        "exclude": ["/doc", "/*.json", "/.git", "/*.md"]
+    },
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-0": {"Limp\\": "src/"}
+    }
+}
