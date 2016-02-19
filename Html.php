@@ -95,6 +95,10 @@ class Html extends Neostag
 
     function render()
     {
+        if($this->cached &&
+            file_exists($this->pathHtmlCache.$this->name.'_cache.html'))
+                return true;
+
         $this->content = file_get_contents($this->header);
         $this->content .= file_get_contents($this->body);
         $this->content .= file_get_contents($this->footer);
@@ -216,12 +220,11 @@ class Html extends Neostag
         header('Cache-Control: must_revalidate, public, max-age=31536000');
         header('X-Server: Qzumba/0.1.8.beta');//for safety ...
         header('X-Powered-By: NEOS PHP FRAMEWORK/1.3.0');//for safety ...
-        return $this->sendWithCach();
 
-        /*
-         * @todo "sendWithCache" habilitado - observe!
-         */
-        //exit($this->content);
+        if($this->cached &&
+            file_exists($this->pathHtmlCache.$this->name.'_cache.html'))
+                return $this->sendWithCach();
+        else exit(eval('?>'.$this->content));
     }
 
     /* Send cached version of compilation
@@ -241,12 +244,8 @@ class Html extends Neostag
     /** Teste
      * @todo testando send with CACHE in PHP!
      */
-    function sendWithCach()
+    protected function sendWithCach()
     {
-        //if(¢MODE == 'pro'){
-        //    ob_end_clean();
-        //    ob_start('ob_gzhandler');
-        //}
         $cache = $this->pathHtmlCache.$this->name.'_cache.html';
         if(!file_exists($cache)) file_put_contents($cache, $this->content);
         include $cache;
