@@ -49,10 +49,10 @@ class Html extends Neostag
         $this->name = $name;
         $this->cached = $cached;
 
-        $this->pathHtml = ¢HTML;
-        $this->pathHtmlCache = ¢HTML.'cache/';
-        $this->pathStyle = ¢CSS;
-        $this->pathScript = ¢JS;
+        $this->pathHtml = _HTML;
+        $this->pathHtmlCache = _HTML.'cache/';
+        $this->pathStyle = _CSS;
+        $this->pathScript = _JS;
 
         $this->header = $this->pathHtml.'header.html';
         $this->body   = $this->pathHtml.'body.html';
@@ -103,8 +103,8 @@ class Html extends Neostag
         $this->content .= file_get_contents($this->body);
         $this->content .= file_get_contents($this->footer);
 
-        if(¢MODE == 'dev') $this->assets();
-        if(¢MODE == 'pro') {
+        if(_MODE == 'dev') $this->assets();
+        if(_MODE == 'pro') {
             $this->assetsComp();
             $this->setContent(str_replace(["\r","\n","\t",'  '], '', $this->getContent()));
         }
@@ -172,7 +172,7 @@ class Html extends Neostag
             $content = exec('java -jar '.__DIR__.'/min/yc.jar "'.$this->pathScript.$this->name.'_all.js"');
             file_put_contents($this->pathScript.$this->name.'_all.js', $content);
         }
-        $s = '<script id="javascript_base">var URL="'.¢URL.'"';
+        $s = '<script id="javascript_base">var URL="'._URL.'"';
         foreach ($this->jsvalues as $n=>$v) {
             $s .= ','.$n.'='.(is_string($v) ? '"'.$v.'"' : $v);
         }
@@ -191,17 +191,17 @@ class Html extends Neostag
     {
         $s = '';
         foreach($this->styles as $id=>$f){
-            $s .= '<link id="stylesheet_'.$id.'" rel="stylesheet" href="'.¢URL.'css/'.$f.'.css">'."\n\t";
+            $s .= '<link id="stylesheet_'.$id.'" rel="stylesheet" href="'._URL.'css/'.$f.'.css">'."\n\t";
         }
         $this->val('style', $s);
 
-        $s = '<script id="javascript_base">var URL="'.¢URL.'"';
+        $s = '<script id="javascript_base">var URL="'._URL.'"';
         foreach ($this->jsvalues as $n=>$v) {
             $s .= ','.$n.'='.(is_string($v) ? '"'.$v.'"' : $v);
         }
         $s .= ';</script>';
         foreach($this->scripts as $id=>$f){
-            $s .= "\n\t".'<script id="javascript_'.$id.'" src="'.¢URL.'js/'.$f.'.js"></script>';
+            $s .= "\n\t".'<script id="javascript_'.$id.'" src="'._URL.'js/'.$f.'.js"></script>';
         }
         $this->val('script', $s); //e($this);
     }
@@ -212,7 +212,7 @@ class Html extends Neostag
      */
     function send() 
     {
-        if(¢MODE == 'pro'){
+        if(_MODE == 'pro'){
             ob_end_clean();
             ob_start('ob_gzhandler');
         }
@@ -325,7 +325,7 @@ class Html extends Neostag
                 $vartemp = '';
 
                 //constant URL
-                if($ret['-tipo-'] == 'var' && $ret['var'] == 'url') $vartemp = ¢URL;
+                if($ret['-tipo-'] == 'var' && $ret['var'] == 'url') $vartemp = _URL;
                 elseif (method_exists($this, '_' . $ret['-tipo-'])) $vartemp = $this->{'_' . $ret['-tipo-']}($ret);
 
                 //Incluindo o bloco gerado pelas ©NeosTags
