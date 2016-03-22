@@ -14,7 +14,7 @@
 
 namespace Limp\Doc;
 
-class Html extends Neostag 
+class Html
 {
 
     private $name =             '';
@@ -26,7 +26,7 @@ class Html extends Neostag
     private $pathScript =       '';
 
     private $header =           null;
-    private $body =             null;
+    private $body =             [];
     private $footer =           null;
 
     private $styles =           [];
@@ -55,14 +55,14 @@ class Html extends Neostag
         $this->pathScript = _JS;
 
         $this->header = $this->pathHtml.'header.html';
-        $this->body   = $this->pathHtml.'body.html';
+        //$this->body   = $this->pathHtml.'body.html';
         $this->footer = $this->pathHtml.'footer.html';
     }
 
     function body($v = null)
-    {
+    { 
         if($v === null) return $this->body;
-        $this->body = $this->pathHtml.$v.'.html';
+        $this->body[] = $this->pathHtml.$v.'.html';
         return $this;
     }
 
@@ -100,7 +100,9 @@ class Html extends Neostag
                 return true;
 
         $this->content = file_get_contents($this->header);
-        $this->content .= file_get_contents($this->body);
+        foreach($this->body as $b){
+            $this->content .= file_get_contents($b);
+        }
         $this->content .= file_get_contents($this->footer);
 
         if(_MODE == 'dev') $this->assets();
@@ -159,7 +161,6 @@ class Html extends Neostag
         }
         $this->val('style', '<style id="stylesheet_base">'.$content.'</style>');
 
-
         //JAVASCRIPTS
         if(file_exists($this->pathScript.$this->name.'_all.js') && !$this->forceCompress)
             $content = file_get_contents($this->pathScript.$this->name.'_all.js');
@@ -172,9 +173,13 @@ class Html extends Neostag
             $content = exec('java -jar '.__DIR__.'/min/yc.jar "'.$this->pathScript.$this->name.'_all.js"');
             file_put_contents($this->pathScript.$this->name.'_all.js', $content);
         }
-        $s = '<script id="javascript_base">var URL="'._URL.'"';
+        $s = '<script id="javascript_base">var URL=\''._URL.'\'';
+        if(isset($_SESSION['msg']) && $_SESSION['msg'] !== '') {
+            $s .= ',xmsg="'.str_replace('"', "'", $_SESSION['msg']).'"';
+           unset($_SESSION['msg']);
+        }
         foreach ($this->jsvalues as $n=>$v) {
-            $s .= ','.$n.'='.(is_string($v) ? '"'.$v.'"' : $v);
+            $s .= ','.$n.'='.(is_string($v) ? '\''.$v.'\'' : $v);
         }
         $s .= ';';
         $this->val('script', $s.$content.'</script>');
@@ -195,9 +200,13 @@ class Html extends Neostag
         }
         $this->val('style', $s);
 
-        $s = '<script id="javascript_base">var URL="'._URL.'"';
+        $s = '<script id="javascript_base">var URL=\''._URL.'\'';
+        if(isset($_SESSION['msg']) && $_SESSION['msg'] !== '') {
+            $s .= ',xmsg="'.str_replace('"', "'", $_SESSION['msg']).'"';
+            unset($_SESSION['msg']); 
+        }
         foreach ($this->jsvalues as $n=>$v) {
-            $s .= ','.$n.'='.(is_string($v) ? '"'.$v.'"' : $v);
+            $s .= ','.$n.'='.(is_string($v) ? '\''.$v.'\'' : $v);
         }
         $s .= ';</script>';
         foreach($this->scripts as $id=>$f){
@@ -212,7 +221,7 @@ class Html extends Neostag
      */
     function send() 
     {
-        if(_MODE == 'pro'){
+        if(_MODE == 'pro'){ 
             ob_end_clean();
             ob_start('ob_gzhandler');
         }
@@ -269,6 +278,7 @@ class Html extends Neostag
     protected function getVar($var = null) 
     {
         //return ($var == null) ? $this->values : (isset($this->values[$var]) ? $this->values[$var] : false);
+        $var = trim($var);
         return ($var == null) ? static::$values : (isset(static::$values[$var]) ? static::$values[$var] : false);
     }
     protected static function get($var = null)
@@ -460,7 +470,7 @@ class Html extends Neostag
     */
     private function _var($ret) 
     {
-        $v = $this->getVar(trim($ret['var']));
+        $v = $this->getVar($ret['var']);
         if(!$v) return '';
         //$ret['-content-'] .= $v;
         $ret['-content-'] .= '<?php echo Limp\Doc\HTML::get("'.trim($ret['var']).'")?>';
@@ -481,7 +491,7 @@ class Html extends Neostag
     private function _list($ret)
     {
         if(!isset($ret['var'])) return '';
-        $v = $this->getVar(trim($ret['var']));
+        $v = $this->getVar($ret['var']);
         if(!$v || !is_array($v)) return '';
 
         $tag = isset($ret['tag']) ? $ret['tag'] : 'li';
@@ -517,6 +527,33 @@ class Html extends Neostag
         return $this->setAttributes($ret);
     }
 
+    /**
+     * Create <select> HTML tag
+     * configuration:
+            $select['data'] = ['value'=>'display', 'val....];
+            $select['default'] = '..value...';
+            $LimpDocHtml->val('varName',$select);
+
+            ---- in HTML file 
+            <x::select data="varName" ...some attributes />
+     *
+     * @param array $ret ©NeosTag data array
+     * @return string|html
+    */
+    private function _select($ret)
+    {
+        $var = $this->getVar($ret['data']);
+        if(!$var) return false;
+
+        $o = '';
+        foreach($var['data'] as $k => $v) {
+            $o .= '<option value="'.$k.'"'.($var['default'] == $k ? ' selected':'').'>'.$v.'</option>';
+        }
+        $ret['-content-'] = $o;
+        $ret['tag'] = 'select';
+        return $this->setAttributes($ret);
+    }
+
 
     private function setAttributes($a)
     {
@@ -531,10 +568,13 @@ class Html extends Neostag
             foreach ($a as $k=>$v){
                 $d .= ' '.trim($k).'="'.trim($v).'"';
             }
-            $content = $d.'>'.$content.'</'.$tag.'>';
+
+            if($tag == 'input') $content = $d.' value="'.$content.'"/>';
+            else $content = $d.'>'.$content.'</'.$tag.'>';
 
         } elseif($tag != '') {
-            $content = '<'.$tag.'>'.$content.'</'.$tag.'>';
+            if($tag == 'input') $content = '<'.$tag.' value="'.$content.'"/>';
+            else $content = '<'.$tag.'>'.$content.'</'.$tag.'>';
         }
         return $content;
     }
@@ -548,7 +588,14 @@ class Html extends Neostag
     */
     function clearData($ret)
     {
-        unset($ret['var'], $ret['-inicio-'], $ret['-tamanho-'], $ret['-final-'], $ret['-tipo-'], $ret['-content-'], $ret['tag']);
+        unset($ret['var'], 
+              $ret['-inicio-'], 
+              $ret['-tamanho-'], 
+              $ret['-final-'], 
+              $ret['-tipo-'], 
+              $ret['-content-'], 
+              $ret['tag'],
+              $ret['data']);
         return $ret;
     }
 
